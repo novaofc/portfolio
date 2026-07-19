@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lance — Software Engineer</title>
+<meta name="description" content="Portfolio of Lance, a software engineering student building production systems, one commit at a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     DESIGN TOKENS
+     :root is a CSS selector matching the top of the document — putting
+     variables here makes them "global" so any rule below can read them.
+     These are CSS custom properties (the `--name` syntax): reusable
+     values you read elsewhere with var(--name), e.g. var(--amber).
+     The payoff: change a colour once here and it updates everywhere on
+     the page that uses it, instead of hunting through hundreds of lines.
+     ============================================================ */
+  :root {
+    /* Backgrounds, darkest to lightest — used to fake "depth" by layering
+       panels of slightly different shades on top of each other. */
+    --bg: #0b0f17;
+    --bg-2: #0d1320;
+    --panel: #131a26;
+    --panel-2: #1b2434;
+
+    /* Borders — --border-soft is used for quieter internal dividers,
+       --border for outlines that should read a bit more clearly. */
+    --border: #263148;
+    --border-soft: #1c2536;
+
+    /* Text — three steps of "loudness" so hierarchy is built from colour,
+       not just font size: bright for headings, dim for body copy,
+       faint for the least important labels/timestamps. */
+    --text: #e7ecf4;
+    --text-dim: #8c97ac;
+    --text-faint: #55617a;
+
+    /* Accent + status colours. Amber is the site's single signature
+       colour, used sparingly for anything that should draw the eye.
+       Green/grey are functional — they signal build status
+       (live / in progress / planned), not decoration. */
+    --amber: #e8a33d;
+    --amber-dim: #8a6a3a;
+    --green: #4ade80;
+    --grey-status: #6b7690;
+
+    /* Font stacks. Each lists a preferred web font, then fallbacks the
+       browser will use if that font fails to load. */
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --radius: 3px; /* shared corner-rounding for small elements like chips */
+  }
+
+  /* Universal reset: browsers apply their own default margin/padding to
+     elements like <h1> and <p>. Wiping that out with * gives us a blank
+     slate so spacing is only ever what we explicitly set below.
+     box-sizing: border-box means padding/border are counted INSIDE an
+     element's declared width instead of adding to it — this stops
+     padding from silently breaking layouts. */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Makes in-page anchor links (e.g. clicking "about" in the nav) glide
+     to the section instead of jumping instantly. */
+  html { scroll-behavior: smooth; }
+
+  /* Accessibility: some people set "reduce motion" in their OS because
+     animation causes them discomfort. This media query detects that
+     setting and forces every animation/transition on the page down to
+     effectively 0 — so smooth scroll, the blinking cursor, the status-dot
+     pulse, and the scroll-reveal effect all still work but stop moving. */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* Page background, built from three layers painted bottom-to-top:
+     1. var(--bg)                      -> flat base colour
+     2. linear-gradient(--bg-2,--bg-2) -> a second flat colour (a gradient
+        with the same colour twice just gives a solid fill; kept separate
+        so it can be tweaked independently later)
+     3. radial-gradient(...)           -> a soft amber glow near the top
+        left, like a light source, so the hero doesn't feel flat.
+     background-attachment: fixed keeps that glow anchored to the
+     viewport rather than scrolling away with the page content. */
+  body {
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(232,163,61,0.06), transparent),
+      linear-gradient(var(--bg-2), var(--bg-2)),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased; /* smoother font rendering on Mac/iOS */
+  }
+
+  /* The faint graph-paper grid behind the whole page. ::before injects an
+     invisible element before body's real content (not actual HTML — CSS
+     generates it) and fills it with two 1px line-gradients, one
+     horizontal and one vertical, repeated every 42px to form a grid.
+     position: fixed + inset: 0 makes it cover the full viewport.
+     pointer-events: none lets clicks pass straight through it.
+     mask-image fades the grid out toward the edges so it reads as
+     atmosphere behind the hero rather than a harsh pattern everywhere. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(232,163,61,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,163,61,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse 1200px 800px at 50% 0%, black, transparent 70%);
+  }
+
+  /* Links inherit the surrounding text colour instead of the browser's
+     default blue, and lose the default underline (underlines are added
+     back deliberately only where we want them). */
+  a { color: inherit; text-decoration: none; }
+
+  /* Colour of text a visitor highlights by dragging the mouse over it. */
+  ::selection { background: rgba(232,163,61,0.3); color: #fff; }
+
+  /* :focus-visible only draws an outline when someone is navigating with
+     a KEYBOARD (Tab key), not when they click with a mouse. This keeps
+     the page accessible for keyboard/screen-reader users without an
+     outline flashing on every mouse click. */
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* .wrap is the shared content container used by every section: it caps
+     line length at 1040px and centres it with auto margins so text
+     doesn't stretch edge-to-edge on wide monitors. z-index: 1 lifts real
+     content above the fixed grid background (z-index: 0) so it's never
+     hidden behind it. */
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Utility class: apply the monospace font anywhere text should look
+     like code/terminal output (labels, badges, timestamps). */
+  .mono { font-family: var(--mono); }
+
+  /* ============================================================
+     NAV — the sticky bar pinned to the top of the page
+     ============================================================ */
+
+  /* position: sticky + top: 0 keeps the nav pinned to the top of the
+     viewport once you scroll past it, instead of scrolling away with the
+     page. z-index: 50 makes sure it stacks above everything else (like
+     the status board) so it's never covered up.
+     backdrop-filter: blur(10px) blurs whatever content is scrolling
+     underneath it — combined with a semi-transparent background colour
+     (the 0.82 alpha), that's what gives the "frosted glass" look. */
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(11,15,23,0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  /* Same max-width/centring pattern as .wrap, kept separate here so the
+     nav's own padding can differ from the rest of the page. flexbox
+     (display: flex) lays the brand, links, and status pill out in a row,
+     with justify-content: space-between pushing them to opposite ends. */
+  .nav-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* The blinking "_" cursor next to the brand name. @keyframes defines an
+     animation named "blink"; here it just fades opacity to 0 at the 50%
+     mark. steps(2) makes it snap on/off instead of fading smoothly, like
+     a real terminal cursor, and "infinite" repeats it forever. */
+  .nav-brand .caret {
+    color: var(--amber);
+    animation: blink 1.1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+  .nav-links a {
+    color: var(--text-dim);
+    transition: color 0.15s ease; /* smooth colour fade on hover, instead of an instant jump */
+    letter-spacing: 0.02em;
+  }
+  .nav-links a:hover { color: var(--amber); }
+  .nav-links .num { color: var(--text-faint); margin-right: 4px; }
+
+  /* The "open to opportunities" pill on the right of the nav.
+     display: none by default, then switched back on above 720px width —
+     see the media query below. Hiding it on narrow/mobile screens keeps
+     the nav from getting cramped on a phone. */
+  .nav-status {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 20px;
+  }
+  /* The small green "status" dot reused in the nav pill and on the status
+     board badges. box-shadow here isn't a drop shadow — it's used to
+     draw a soft glow ring around the dot, and the "pulse" animation
+     grows/shrinks that ring to make the dot feel alive. */
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.15);
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0; /* stops flexbox from squashing the dot when space is tight */
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(74,222,128,0.15); }
+    50% { box-shadow: 0 0 0 5px rgba(74,222,128,0.08); }
+  }
+
+  /* A media query: CSS rules that only apply when the browser window
+     matches a condition — here, "at least 720px wide". This is what
+     turns the status pill back on for tablet/desktop screens. */
+  @media (min-width: 720px) { .nav-status { display: flex; } }
+
+  /* ============================================================
+     HERO — the big intro section at the top of the page
+     ============================================================ */
+  .hero { padding: 72px 0 40px; }
+
+  /* Splits the hero into a text column and the profile photo, side by
+     side on wide screens. flex-wrap lets the photo drop below the text
+     automatically on narrow screens instead of squeezing both into a
+     cramped row. */
+  .hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap-reverse; /* on narrow screens, the photo (added second in HTML) stacks ABOVE the text instead of below */
+  }
+  .hero-text { flex: 1 1 420px; } /* text column grows freely but won't shrink below 420px before wrapping */
+
+  /* The circular profile photo. border-radius: 50% on a square image is
+     what turns it into a circle — the browser clips anything outside
+     that circle away. object-fit: cover keeps the photo from stretching
+     if its actual file dimensions aren't perfectly square. The amber
+     ring is just a border, offset slightly outward with box-shadow so
+     it doesn't crowd the photo. */
+  .hero-photo {
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+    box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--border-soft);
+  }
+  .prompt-line {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 22px;
+  }
+  .prompt-line span.p { color: var(--amber); } /* highlights just the "$" prompt symbol */
+
+  /* clamp(min, preferred, max) is a "responsive font size in one line":
+     the heading is 5.6% of the viewport width, but never smaller than
+     34px or larger than 54px. That means it scales smoothly between
+     phone and desktop without needing separate media queries. */
+  h1.title {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    letter-spacing: -0.02em; /* tightens spacing slightly, common for large bold headings */
+    max-width: 760px;
+  }
+  h1.title .hl { color: var(--amber); } /* "hl" = highlight, used on the one accent phrase */
+
+  .subtitle {
+    margin-top: 18px;
+    font-size: 17px;
+    color: var(--text-dim);
+    max-width: 560px; /* keeps paragraph lines short and readable */
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap; /* buttons drop to a new row instead of overflowing on narrow screens */
+  }
+  /* Shared button styling. .btn-primary and .btn-ghost below then layer
+     the two different looks (filled vs outlined) on top of this base. */
+  .btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 11px 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: all 0.15s ease; /* smoothly animates hover changes rather than snapping */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--amber);
+    color: #17110a; /* near-black text so it stays readable on the bright amber fill */
+    border-color: var(--amber);
+    font-weight: 600;
+  }
+  /* translateY(-1px) nudges the button up by 1px on hover — a subtle
+     "lift" effect that reads as physical feedback. */
+  .btn-primary:hover { background: #f3ae4d; transform: translateY(-1px); }
+  .btn-ghost { color: var(--text-dim); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-faint); }
+
+  /* ============================================================
+     STATUS BOARD — the "monitoring dashboard" panel in the hero,
+     styled to look like a live status page for each project.
+     ============================================================ */
+  .board {
+    margin-top: 56px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2)); /* subtle top-to-bottom shade shift */
+    overflow: hidden; /* clips the header/cells to the board's rounded corners */
+  }
+  .board-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+  }
+  /* The three small dots top-right of the board header — a nod to
+     macOS-style window "traffic light" buttons, purely decorative. */
+  .board-head .lights { display: flex; gap: 6px; }
+  .board-head .lights span { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+
+  /* CSS Grid with auto-fit + minmax is what makes the board responsive
+     without a single media query: browsers fit as many columns as will
+     comfortably hold a 210px-minimum cell, then stretch them evenly
+     (1fr) to fill any leftover space. On a phone that collapses to one
+     column automatically; on a wide screen it becomes three. */
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+  .board-cell {
+    padding: 18px;
+    border-right: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .board-cell:last-child { border-right: none; } /* removes the trailing divider on the last cell */
+  .cell-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .cell-name {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  /* Small pill labels like "BUILD" / "STABLE" / "QUEUED". Three colour
+     variants below (.badge-live/.badge-progress/.badge-planned) all
+     share this same base shape, then override just colour and
+     background so the status is communicated by colour, not just text. */
+  .badge {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap; /* stops the badge text from wrapping onto two lines */
+  }
+  .badge .dot { width: 5px; height: 5px; }
+  .badge-live { color: var(--green); background: rgba(74,222,128,0.08); }
+  .badge-live .dot { background: var(--green); box-shadow: none; animation: none; } /* static dot, no pulse, inside a small badge */
+  .badge-progress { color: var(--amber); background: rgba(232,163,61,0.08); }
+  .badge-progress .dot { background: var(--amber); box-shadow: none; animation: none; }
+  .badge-planned { color: var(--grey-status); background: rgba(107,118,144,0.08); }
+  .badge-planned .dot { background: var(--grey-status); box-shadow: none; animation: none; }
+
+  .cell-desc {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+  /* The thin progress bar under each status-board cell: an empty track
+     (.cell-bar) with a coloured fill (.cell-bar-fill) sized by an inline
+     width style in the HTML, e.g. style="width:68%". overflow: hidden on
+     the track keeps the fill's rounded corners clipped correctly. */
+  .cell-bar {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border-soft);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .cell-bar-fill { height: 100%; background: var(--amber); border-radius: 4px; }
+  .cell-bar-fill.done { background: var(--green); } /* swapped to green once a project is fully shipped */
+
+  /* ============================================================
+     SECTION SHELL — shared layout rules reused by every <section>
+     (about, stack, projects, log, connect) so spacing stays consistent
+     without repeating the same rules five times.
+     ============================================================ */
+  section { padding: 88px 0; border-top: 1px solid var(--border-soft); }
+  section:first-of-type { border-top: none; } /* no divider above the very first section (about) */
+
+  /* The small "// about" style label above each section heading.
+     ::before injects the "//" comment-style prefix as generated content,
+     so it isn't typed out in the HTML for every section — one CSS rule
+     handles all of them. */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before { content: "//"; color: var(--text-faint); }
+
+  h2.h {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(24px, 3.4vw, 32px);
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .section-lede {
+    color: var(--text-dim);
+    max-width: 620px;
+    margin-bottom: 44px;
+    font-size: 15px;
+  }
+
+  /* ============================================================
+     ABOUT — the "README.md" styled panel
+     ============================================================ */
+  .readme {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  /* The little file-tab strip at the top of the panel, styled like an
+     editor tab showing "README.md". */
+  .readme-tab {
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--panel-2);
+  }
+  .readme-tab .file { color: var(--text-dim); }
+  .readme-body { padding: 28px; font-size: 15.5px; color: var(--text-dim); }
+  .readme-body p { margin-bottom: 16px; }
+  .readme-body p:last-child { margin-bottom: 0; } /* no trailing gap after the final paragraph */
+  .readme-body strong { color: var(--text); font-weight: 600; } /* bold words stand out brighter than the paragraph */
+  /* Small inline amber label used to highlight the project name inside
+     the About paragraph, styled like a code/markdown tag. */
+  .readme-body .tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(232,163,61,0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  /* ============================================================
+     STACK — the grid of "dependency manifest" skill cards
+     ============================================================ */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* same responsive trick as the status board */
+    gap: 16px;
+  }
+  .stack-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 20px;
+  }
+  .stack-card h3 {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--amber);
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .stack-list { list-style: none; display: flex; flex-direction: column; gap: 9px; } /* list-style: none removes the default bullet dots */
+  .stack-list li {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+  }
+  /* Custom "▸" bullet drawn with ::before instead of the browser's
+     default list bullet, so it can match the site's colour palette. */
+  .stack-list li::before {
+    content: "▸";
+    color: var(--text-faint);
+    font-size: 11px;
+  }
+  .stack-list li b { color: var(--text); font-weight: 600; }
+
+  /* ---------- Projects ---------- */
+  .project-flagship {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .flagship-tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .flagship-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap; /* the title and status badge stack instead of overlapping on narrow screens */
+    margin-bottom: 14px;
+  }
+  .flagship-head h3 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .flagship-desc { color: var(--text-dim); max-width: 640px; font-size: 14.5px; margin-bottom: 24px; }
+
+  /* ============================================================
+     CAROUSEL — full-width preview slideshow inside the flagship card.
+     Structure: .carousel > .carousel-viewport (the visible window,
+     clips overflow) > .carousel-track (a flex row holding every slide
+     side by side) > .carousel-slide (one image/video/placeholder each).
+     Sliding between slides is done by shifting .carousel-track
+     sideways with a CSS transform — see the JS at the bottom of the
+     file for how the numbers are calculated.
+     ============================================================ */
+  .carousel { margin: 24px 0 28px; position: relative; }
+
+  .carousel-viewport {
+    overflow: hidden; /* hides every slide except the one currently in the "window" */
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  /* Every slide sits in one long horizontal row. Moving between slides
+     just means sliding this whole row left/right — the "translateX"
+     set by JavaScript in the inline style is what actually moves it;
+     the transition here is what makes that move animate smoothly
+     instead of snapping instantly. */
+  .carousel-track {
+    display: flex;
+    transition: transform 0.45s ease;
+  }
+
+  /* flex: 0 0 100% forces each slide to take up exactly the full width
+     of the viewport and never grow or shrink — that's what keeps
+     exactly one slide visible at a time. aspect-ratio keeps every slide
+     the same 16:9 shape whether it ends up holding an image, a video,
+     or a text placeholder. */
+  .carousel-slide {
+    flex: 0 0 100%;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Fills any space object-fit: contain leaves empty below (the
+       "letterboxing" for portrait screenshots) with the panel colour
+       instead of leaving it blank, so it reads as intentional framing
+       rather than a layout bug. */
+    background: var(--panel-2);
+    padding: 18px;
+  }
+  /* object-fit: contain shrinks the image/video to fit entirely inside
+     the 16:9 box without cropping any of it — the opposite of "cover",
+     which fills the box by cropping off whatever doesn't fit. This
+     matters here because the source screenshots are a mix of wide
+     desktop shots and tall phone shots; "cover" was cropping the tall
+     phone screenshots down to an unreadable sliver blown up to fill the
+     frame, which is the "compressed and cut off" look you saw. "contain"
+     always shows the whole screenshot, just smaller on portrait ones. */
+  .carousel-slide img,
+  .carousel-slide video {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+  }
+
+  /* A label overlaid on the bottom-left of a real (non-placeholder)
+     slide — e.g. "Website · Homepage". position: absolute takes it out
+     of normal flow so it floats on top of the image; the gradient
+     behind the text (rather than a flat background) keeps it legible
+     over any part of a screenshot without hard-edging the photo. */
+  .carousel-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 28px 18px 14px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    pointer-events: none; /* lets clicks pass through to whatever is beneath, if anything ever needs to be clickable there */
+  }
+  .carousel-caption .cap-system {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .carousel-caption .cap-label {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Placeholder look for slides with no media yet — a diagonal hazard-
+     stripe pattern (repeating-linear-gradient) and a dashed border,
+     the universal visual shorthand for "this spot is waiting for
+     content", plus a caption telling you what to shoot. */
+  .carousel-slide.placeholder {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--panel-2), var(--panel-2) 12px,
+      var(--panel) 12px, var(--panel) 24px
+    );
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 24px;
+  }
+  .carousel-slide.placeholder .ph-icon {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--text-faint);
+  }
+  .carousel-slide.placeholder .ph-label {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .carousel-slide.placeholder .ph-hint {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    max-width: 320px;
+  }
+
+  /* Prev/next arrow buttons, pinned to the left/right edges of the
+     viewport with position: absolute (measured from .carousel, which is
+     position: relative above). Real <button> elements, not <div>s, so
+     they're keyboard-focusable and screen readers announce them as
+     buttons automatically. */
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(11,15,23,0.75);
+    backdrop-filter: blur(4px);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .carousel-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .carousel-prev { left: 12px; }
+  .carousel-next { right: 12px; }
+
+  /* The row of small dots below the carousel showing which slide is
+     active. Built as real <button>s in the HTML/JS so each dot is
+     independently clickable and tabbable, not just decoration. */
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .carousel-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: none;
+    background: var(--border);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .carousel-dot.active {
+    background: var(--amber);
+    transform: scale(1.3);
+  }
+
+
+
+  /* The three-column "Shipped / In progress / Next up" grid inside the
+     flagship project card — same auto-fit responsive grid pattern used
+     throughout the page. */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .spec-col h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .spec-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .spec-list li { font-size: 13px; color: var(--text-dim); display: flex; gap: 8px; align-items: flex-start; }
+  /* Instead of one bullet style for every list, each list carries an
+     extra class (.done / .wip / .next) that swaps the ::before symbol
+     and colour — a checkmark for finished items, a half-circle for
+     work-in-progress, and a hollow circle for what's still ahead. This
+     is what turns a plain list into a visual "build status" at a glance. */
+  .spec-list.done li::before { content: "✓"; color: var(--green); font-family: var(--mono); flex-shrink: 0; }
+  .spec-list.wip li::before { content: "◐"; color: var(--amber); font-family: var(--mono); flex-shrink: 0; }
+  .spec-list.next li::before { content: "○"; color: var(--text-faint); font-family: var(--mono); flex-shrink: 0; }
+
+  /* Small rounded "pill" tags used to list a project's tech stack
+     (e.g. Flask, SQLite, REST API). */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* The grid of smaller project cards below the flagship project. */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .project-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 22px;
+    transition: border-color 0.15s ease, transform 0.15s ease; /* smooths the hover-lift effect below */
+  }
+  .project-card:hover { border-color: var(--amber-dim); transform: translateY(-2px); } /* lifts the card slightly and glows its border on hover */
+  .project-card .cell-top { margin-bottom: 12px; }
+  .project-card h4 { font-size: 15px; font-weight: 700; }
+  .project-card p { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; line-height: 1.6; }
+  .project-card .chip-row { margin-top: 0; }
+
+  /* ============================================================
+     GITHUB FEED — the auto-updating "Live from GitHub" strip.
+     Unlike everything above, these cards aren't written in the HTML —
+     JavaScript builds them at page-load time from data fetched over the
+     network (see the loadGitHubActivity() function near the bottom of
+     the file). The CSS below only defines what a card looks like once
+     it exists; it has no effect until JS actually creates one.
+     ============================================================ */
+  .gh-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 40px 0 16px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .gh-head h3 {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .gh-refresh {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .gh-feed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  /* Cards here reuse .project-card's look (border, padding, hover-lift)
+     but are plain <a> tags instead of <div>s, since each one links
+     straight to the repo on GitHub. */
+  a.project-card { cursor: pointer; }
+  .gh-lang {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-faint);
+  }
+  .gh-updated {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+  }
+  /* Shown briefly while the fetch() request to GitHub is in flight. */
+  .gh-loading, .gh-error {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    padding: 20px 0;
+  }
+  .gh-error a { color: var(--amber); text-decoration: underline; }
+
+  /* ============================================================
+     LOG — the changelog-style timeline for coursework/education
+     ============================================================ */
+  /* .log::before draws the single vertical line running down the left
+     side of the whole timeline (an absolutely positioned 1px-wide box).
+     position: relative on .log is required so that absolute positioning
+     is measured from THIS element, not the whole page. */
+  .log { position: relative; padding-left: 28px; }
+  .log::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+  .log-entry { position: relative; padding-bottom: 32px; }
+  .log-entry:last-child { padding-bottom: 0; }
+  /* Each entry draws its own small circular "node" that sits on top of
+     the vertical line from .log::before, giving the classic
+     git-log/changelog dot-and-line look. */
+  .log-entry::before {
+    content: "";
+    position: absolute;
+    left: -28px;
+    top: 4px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--amber);
+  }
+  .log-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .log-entry h4 { font-size: 15.5px; font-weight: 700; margin-bottom: 6px; }
+  .log-entry p { font-size: 13.5px; color: var(--text-dim); max-width: 560px; }
+
+  /* ============================================================
+     CONNECT — the contact panel at the bottom of the page
+     ============================================================ */
+  .connect-panel {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    padding: 40px;
+    text-align: left;
+  }
+  .connect-panel .prompt-line { margin-bottom: 10px; }
+  .connect-panel h2.h { margin-bottom: 14px; }
+  .connect-panel .section-lede { margin-bottom: 30px; }
+  .connect-links { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 26px 0 60px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* ============================================================
+     SCROLL REVEAL — the fade/slide-in effect as sections enter view.
+     This CSS only defines the two visual STATES (hidden vs visible);
+     the JavaScript further down (IntersectionObserver) is what actually
+     adds the "in" class to switch an element from one state to the
+     other as it scrolls into the viewport.
+     [data-reveal] targets any element with a `data-reveal` HTML
+     attribute — this is a nice way to hook up JS behaviour without
+     needing an extra class name. */
+  [data-reveal] { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  [data-reveal].in { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand"><span>lance@portfolio:~$</span><span class="caret">_</span></div>
+    <nav class="nav-links">
+      <a href="#about"><span class="num">01</span>about</a>
+      <a href="#stack"><span class="num">02</span>stack</a>
+      <a href="#projects"><span class="num">03</span>projects</a>
+      <a href="#log"><span class="num">04</span>log</a>
+      <a href="#connect"><span class="num">05</span>connect</a>
+    </nav>
+    <div class="nav-status"><span class="dot"></span>open to opportunities</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" style="border-top:none; padding-top:72px;">
+    <div class="hero-top">
+      <div class="hero-text">
+        <div class="prompt-line"><span class="p">$</span> whoami</div>
+        <h1 class="title">Lance — building software that <span class="hl">actually ships.</span></h1>
+        <p class="subtitle">Software engineering student writing real backend systems, not just exercises — currently shipping a production booking platform from database schema to deployment.</p>
+        <div class="hero-actions">
+          <a href="#projects" class="btn btn-primary">View projects →</a>
+          <a href="https://github.com/novaofc" target="_blank" rel="noopener" class="btn btn-ghost">GitHub ↗</a>
+          <a href="#connect" class="btn btn-ghost">Get in touch</a>
+        </div>
+      </div>
+      <!-- Swap media/profile.jpg for a different photo any time — the
+           circular shape and border come entirely from the .hero-photo
+           CSS rule above, so any image dropped in here gets the same
+           treatment automatically. -->
+      <img class="hero-photo" src="media/profile.jpg" alt="Portrait of Lance">
+    </div>
+
+    <!-- STATUS BOARD
+         The data-reveal attribute on this div (and on other section
+         panels below) is not a real HTML attribute with built-in
+         behaviour — it's a custom "data-*" attribute, which HTML lets
+         you invent freely as a hook for your own CSS/JS. The CSS above
+         uses it to start the element invisible, and the JavaScript near
+         the bottom of the page uses it to detect these elements and fade
+         them in once they scroll into view.
+         Each "cell-bar-fill" below has an inline style="width:68%" —
+         that percentage is what actually draws the progress bar length;
+         edit that number directly when a project's status changes. -->
+    <div class="board" data-reveal>
+      <div class="board-head">
+        <span>SYSTEM STATUS</span>
+        <div class="lights"><span></span><span></span><span></span></div>
+      </div>
+      <div class="board-grid">
+        <div class="board-cell">
+          <div class="cell-top">
+            <span class="cell-name">L&amp;D-hotel/api</span>
+            <span class="badge badge-progress"><span class="dot"></span>build</span>
+          </div>
+          <p class="cell-desc">Flask backend — auth, rate limiting, CSRF and validators complete. iCal sync in progress.</p>
+          <div class="cell-bar"><div class="cell-bar-fill" style="width:68%"></div></div>
+        </div>
+        <div class="board-cell">
+          <div class="cell-top">
+            <span class="cell-name">L&amp;D-hotel/web</span>
+            <span class="badge badge-live"><span class="dot"></span>stable</span>
+          </div>
+          <p class="cell-desc">Guest-facing booking site. Frontend prototypes complete and wired to the API.</p>
+          <div class="cell-bar"><div class="cell-bar-fill done" style="width:85%"></div></div>
+        </div>
+        <div class="board-cell">
+          <div class="cell-top">
+            <span class="cell-name">deployment</span>
+            <span class="badge badge-planned"><span class="dot"></span>queued</span>
+          </div>
+          <p class="cell-desc">PayFast, SendGrid and Railway deployment scheduled for the next build phase.</p>
+          <div class="cell-bar"><div class="cell-bar-fill" style="width:15%"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT
+       id="about" is what the nav link href="#about" jumps to — matching
+       id/href pairs are how in-page anchor navigation works in plain
+       HTML, no JavaScript required. Every section below follows the
+       same pattern (id="stack", id="projects", etc). -->
+  <section id="about">
+    <div class="eyebrow">about</div>
+    <h2 class="h">Currently in the build phase.</h2>
+    <p class="section-lede">The short version: I learn by shipping something that has to work for a real person.</p>
+    <div class="readme" data-reveal>
+      <div class="readme-tab mono"><span class="file">README.md</span></div>
+      <div class="readme-body">
+        <p>I'm a software engineering student working through <strong>HyperionDev's</strong> curriculum — Python fundamentals, OOP, databases, and Git workflow — while running a larger project on the side: a full booking system for a boutique guesthouse, <span class="tag">L&D Boutique Hotel</span>, covering everything from the Flask backend to the guest-facing app.</p>
+        <p>That project is where most of my real learning happens. It's forced me past tutorial-sized problems into the stuff that actually matters in production: input validation, authentication, rate limiting, CSRF protection, and error handling that doesn't just fail silently.</p>
+        <p>I prefer understanding a problem over copying a solution — most of my coursework was done by working through my own attempt first, then refining it against feedback rather than starting from someone else's answer.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STACK
+       Four .stack-card panels laid out by the .stack-grid CSS rule
+       (display: grid + auto-fit), so adding a 5th card here needs no
+       extra CSS — the grid just reflows to fit it. -->
+  <section id="stack">
+    <div class="eyebrow">stack</div>
+    <h2 class="h">Dependencies.</h2>
+    <p class="section-lede">What I build with today, and what's currently being installed.</p>
+    <div class="stack-grid" data-reveal>
+      <div class="stack-card">
+        <h3>Languages</h3>
+        <ul class="stack-list">
+          <li><b>Python</b> — OOP, recursion, file I/O</li>
+          <li><b>SQL</b> — SQLite, schema design</li>
+          <li><b>Shell</b> — PowerShell scripting</li>
+          <li>HTML / CSS / JS</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Backend &amp; Data</h3>
+        <ul class="stack-list">
+          <li><b>Flask</b> — routes, models, blueprints</li>
+          <li>Auth, CSRF &amp; rate limiting</li>
+          <li>Input validation</li>
+          <li>NoSQL concepts</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Tools &amp; Workflow</h3>
+        <ul class="stack-list">
+          <li><b>Git &amp; GitHub</b> — branching, PRs</li>
+          <li>Git Bash / CLI-first workflow</li>
+          <li>VS Code</li>
+          <li>Local LLM tooling (Ollama)</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Currently Installing</h3>
+        <ul class="stack-list">
+          <li>PayFast payment integration</li>
+          <li>SendGrid transactional email</li>
+          <li>Railway deployment</li>
+          <li>iCal channel sync</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS
+       The flagship card (L&D Boutique Hotel) always appears first and
+       full-width — it's plain HTML markup, not something the grid picks
+       out automatically. Below it, .project-grid lays the smaller
+       project cards out responsively.
+       Each spec-list below uses the class "done", "wip", or "next" —
+       that's what triggers the ✓ / ◐ / ○ icons defined in the CSS. -->
+  <section id="projects">
+    <div class="eyebrow">projects</div>
+    <h2 class="h">What I've built.</h2>
+    <p class="section-lede">One flagship system, and a handful of smaller builds that each taught me one thing well.</p>
+
+    <div class="project-flagship" data-reveal>
+      <span class="flagship-tag">Flagship build</span>
+      <div class="flagship-head">
+        <h3>L&D Boutique Hotel</h3>
+        <span class="badge badge-progress"><span class="dot"></span>in active development</span>
+      </div>
+      <p class="flagship-desc">A full booking system for a boutique guesthouse — a guest-facing website and companion mobile app, backed by a Flask API I designed and built from the schema up.</p>
+
+      <!-- CAROUSEL — real screenshots across all three systems:
+           the guest-facing website, the guest mobile app, and the
+           admin booking dashboard. Each slide is a wrapper div
+           (class="carousel-slide", keeps the 16:9 sizing/animation
+           rules) holding an <img> plus a small caption overlay.
+
+           To add another screenshot later: drop the file in /media,
+           then copy one of the blocks below and change the src, alt,
+           and caption text. The JS counts slides automatically, so
+           adding/removing/reordering just works — nothing else to
+           touch. -->
+      <div class="carousel" data-reveal>
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carousel-track">
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/web-homepage.png" alt="L&D Boutique Hotel website homepage with booking widget">
+              <div class="carousel-caption"><span class="cap-system">Website</span><span class="cap-label">Homepage &amp; booking widget</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/web-about-rooms.png" alt="L&D Boutique Hotel website about section and rooms & rates">
+              <div class="carousel-caption"><span class="cap-system">Website</span><span class="cap-label">About &amp; rooms/rates</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/web-cta-footer.png" alt="L&D Boutique Hotel website booking call-to-action and footer">
+              <div class="carousel-caption"><span class="cap-system">Website</span><span class="cap-label">Booking CTA &amp; footer</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/app-home.png" alt="Guest app home screen with quick actions and weather">
+              <div class="carousel-caption"><span class="cap-system">Guest App</span><span class="cap-label">Home dashboard</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/app-checkin.png" alt="Guest app digital check-in flow">
+              <div class="carousel-caption"><span class="cap-system">Guest App</span><span class="cap-label">Digital check-in</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/app-room-controls.png" alt="Guest app room controls for lighting, climate and curtains">
+              <div class="carousel-caption"><span class="cap-system">Guest App</span><span class="cap-label">Room controls</span></div>
+            </div>
+            <div class="carousel-slide">
+              <img class="slide-media" src="media/admin-dashboard.png" alt="Admin booking dashboard showing bookings, rooms and guests">
+              <div class="carousel-caption"><span class="cap-system">Admin</span><span class="cap-label">Booking dashboard</span></div>
+            </div>
+            <div class="carousel-slide placeholder">
+              <span class="ph-icon">▶</span>
+              <span class="ph-label">Walkthrough video</span>
+              <span class="ph-hint">Add a short screen-recording demo here — same swap pattern as above, using a &lt;video&gt; tag.</span>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-btn carousel-prev" id="carousel-prev" aria-label="Previous slide">‹</button>
+        <button class="carousel-btn carousel-next" id="carousel-next" aria-label="Next slide">›</button>
+        <div class="carousel-dots" id="carousel-dots"></div>
+      </div>
+
+      <div class="spec-grid">
+        <div class="spec-col">
+          <h4>Shipped</h4>
+          <ul class="spec-list done">
+            <li>Frontend booking prototypes</li>
+            <li>Database models &amp; schema</li>
+            <li>Route handlers &amp; validators</li>
+            <li>Auth, rate limiting &amp; CSRF protection</li>
+            <li>Structured error handling</li>
+          </ul>
+        </div>
+        <div class="spec-col">
+          <h4>In progress</h4>
+          <ul class="spec-list wip">
+            <li>iCal export / import</li>
+            <li>Guest mobile app wiring</li>
+          </ul>
+        </div>
+        <div class="spec-col">
+          <h4>Next up</h4>
+          <ul class="spec-list next">
+            <li>PayFast payment processing</li>
+            <li>SendGrid email confirmations</li>
+            <li>Railway production deployment</li>
+            <li>Channel manager integration</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="chip-row">
+        <span class="chip">Flask</span>
+        <span class="chip">SQLite</span>
+        <span class="chip">REST API</span>
+        <span class="chip">Auth &amp; Security</span>
+        <span class="chip">Mobile</span>
+      </div>
+    </div>
+
+    <div class="project-grid">
+      <div class="project-card" data-reveal>
+        <div class="cell-top">
+          <h4>Task Manager (Capstone)</h4>
+          <span class="badge badge-live"><span class="dot"></span>done</span>
+        </div>
+        <p>A Python task-management app with admin-level controls and automated report generation, built as a capstone piece pulling together OOP and file handling.</p>
+        <div class="chip-row"><span class="chip">Python</span><span class="chip">OOP</span></div>
+      </div>
+      <div class="project-card" data-reveal>
+        <div class="cell-top">
+          <h4>Desktop Weather App</h4>
+          <span class="badge badge-live"><span class="dot"></span>done</span>
+        </div>
+        <p>A PyQt5 desktop app pulling live weather data through a REST API, with a debugged UI layer and proper error states for failed requests.</p>
+        <div class="chip-row"><span class="chip">Python</span><span class="chip">PyQt5</span><span class="chip">API</span></div>
+      </div>
+      <div class="project-card" data-reveal>
+        <div class="cell-top">
+          <h4>Minesweeper Engine</h4>
+          <span class="badge badge-live"><span class="dot"></span>done</span>
+        </div>
+        <p>A grid-logic implementation of Minesweeper built with nested loops and helper functions — a clean exercise in decomposing spatial logic.</p>
+        <div class="chip-row"><span class="chip">Python</span><span class="chip">Algorithms</span></div>
+      </div>
+      <div class="project-card" data-reveal>
+        <div class="cell-top">
+          <h4>Local AI Agent Environment</h4>
+          <span class="badge badge-live"><span class="dot"></span>done</span>
+        </div>
+        <p>Set up and configured a local LLM environment using Ollama, exploring self-hosted AI tooling outside of cloud APIs.</p>
+        <div class="chip-row"><span class="chip">Ollama</span><span class="chip">Tooling</span></div>
+      </div>
+    </div>
+
+    <!-- LIVE GITHUB FEED
+         This block starts empty on purpose — loadGitHubActivity() in the
+         <script> at the bottom of the file fills #gh-feed in with real
+         cards once the page loads. That's the actual "update
+         automatically when I push to git" feature: every repo on your
+         GitHub profile shows up here without you touching this file
+         again, sorted by whichever you pushed to most recently. -->
+    <div class="gh-head">
+      <h3>Live from GitHub</h3>
+      <span class="gh-refresh mono">auto-updates on page load</span>
+    </div>
+    <div class="gh-feed" id="gh-feed" data-reveal>
+      <p class="gh-loading">Fetching latest repos…</p>
+    </div>
+  </section>
+
+  <!-- LOG
+       Styled like a git changelog since the content really is sequential
+       (v0.1 → v0.5). The connecting line and dots you see are drawn
+       purely with CSS (.log::before and .log-entry::before) — there's
+       no extra markup here for them, just five plain .log-entry blocks. -->
+  <section id="log">
+    <div class="eyebrow">log</div>
+    <h2 class="h">Changelog.</h2>
+    <p class="section-lede">My path through HyperionDev's software engineering curriculum, in the order it happened.</p>
+
+    <div class="log" data-reveal>
+      <div class="log-entry">
+        <span class="log-tag mono">v0.1 — foundations</span>
+        <h4>Python fundamentals</h4>
+        <p>Pseudocode, string manipulation, loops, and a from-scratch finance calculator to get comfortable with core logic.</p>
+      </div>
+      <div class="log-entry">
+        <span class="log-tag mono">v0.2 — structure</span>
+        <h4>OOP &amp; recursion</h4>
+        <p>Class design and inheritance across several projects, plus recursive solutions for problems like largest-number search.</p>
+      </div>
+      <div class="log-entry">
+        <span class="log-tag mono">v0.3 — persistence</span>
+        <h4>File I/O &amp; databases</h4>
+        <p>Reading, writing, and debugging file-based data, then moving into SQL with SQLite and NoSQL design concepts.</p>
+      </div>
+      <div class="log-entry">
+        <span class="log-tag mono">v0.4 — workflow</span>
+        <h4>Git, GitHub &amp; shell scripting</h4>
+        <p>End-to-end version control practice via Git Bash, public repos on GitHub, and PowerShell scripting for automation.</p>
+      </div>
+      <div class="log-entry">
+        <span class="log-tag mono">v0.5 — production</span>
+        <h4>L&D Boutique Hotel (ongoing)</h4>
+        <p>Applying all of the above to a real system — the current build, and where most of the active learning is happening now.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONNECT
+       href="mailto:..." opens the visitor's default email app with your
+       address pre-filled — no backend/server needed for a contact form.
+       The WhatsApp button uses a "wa.me" link — a URL scheme WhatsApp
+       itself provides that opens a chat with a specific number pre-
+       loaded, again with zero backend involved.
+       target="_blank" opens both external links in a new tab; rel="noopener"
+       is a security best practice paired with target="_blank" — it stops
+       the new tab from getting a JavaScript reference back to this page. -->
+  <section id="connect">
+    <div class="connect-panel" data-reveal>
+      <div class="prompt-line mono"><span class="p">$</span> ./connect --with lance</div>
+      <h2 class="h">Let's talk.</h2>
+      <p class="section-lede">Open to internships, junior roles, and collaborators who want to build something real. Reach out directly, or check the repos.</p>
+      <div class="connect-links">
+        <a href="mailto:lancelandore@gmail.com" class="btn btn-primary">Email me ↗</a>
+        <a href="https://wa.me/27626465028" target="_blank" rel="noopener" class="btn btn-ghost">WhatsApp ↗</a>
+        <a href="https://github.com/novaofc" target="_blank" rel="noopener" class="btn btn-ghost">github.com/novaofc ↗</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- footer uses the same .wrap container class as the sections above,
+     so its content lines up with the same 1040px-max, centred column. -->
+<footer class="wrap">
+  <span>© 2026 Lance. Built from scratch, no template.</span>
+  <span>status: <span style="color:var(--green)">online</span></span>
+</footer>
+
+<script>
+  // ============================================================
+  // CONFIG — quick edits: update these when your contact details change.
+  // Kept in-file so this stays a single portable HTML file — no build
+  // step needed, just open it or host it on GitHub Pages as-is.
+  //
+  // Note: this CONFIG object isn't wired into the page automatically.
+  // The email/GitHub link that actually show up live directly in the
+  // HTML above (search for "mailto:" and "github.com/novaofc"). CONFIG
+  // just keeps the canonical values in one visible place near the top
+  // of the script — if you want it to actually drive the links, you'd
+  // set e.g. `document.querySelector('.connect-links a').href =
+  // 'mailto:' + CONFIG.email` here. Left as plain HTML edits for now
+  // since that's simpler while the site is this size.
+  // ============================================================
+  const CONFIG = {
+    email: "lancelandore@gmail.com",
+    github: "https://github.com/novaofc",
+    githubUsername: "novaofc", // <-- used below to call the GitHub API directly
+    // wa.me links need the FULL international number, no leading 0 and
+    // no "+" or spaces/dashes. South Africa's country code is 27, so a
+    // local number written as 062 646 5028 becomes 27626465028 here.
+    whatsapp: "27626465028",
+  };
+
+  // ============================================================
+  // SCROLL REVEAL
+  // Finds every element marked with the data-reveal attribute (the
+  // status board, the about panel, each project card, etc.) and fades
+  // each one in the first time it scrolls into the visitor's viewport.
+  // ============================================================
+
+  // querySelectorAll takes a CSS selector — here [data-reveal] means
+  // "any element that has a data-reveal attribute" — and returns a list
+  // of every matching element on the page.
+  const revealEls = document.querySelectorAll('[data-reveal]');
+
+  // IntersectionObserver is a built-in browser API that watches elements
+  // and fires a callback whenever they scroll into (or out of) view,
+  // instead of us having to manually calculate scroll positions on every
+  // scroll event (which would be slow and fiddly to get right).
+  //
+  // `threshold: 0.12` means "trigger once at least 12% of the element is
+  // visible" — a small amount is enough to start the fade, rather than
+  // waiting for the whole element to be on screen.
+  const io = new IntersectionObserver((entries) => {
+    // `entries` is the list of elements whose visibility just changed.
+    // For each one that has now scrolled into view...
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        // ...add the "in" class, which switches on the visible state
+        // defined by the [data-reveal].in CSS rule (opacity: 1, no
+        // vertical offset — see the CSS above).
+        e.target.classList.add('in');
+        // Then stop watching this element. Without this, the observer
+        // would keep firing every time the element scrolls in and out,
+        // which is unnecessary once it's already been revealed.
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  // Tell the observer to start watching every element we found above.
+  revealEls.forEach(el => io.observe(el));
+
+  // ============================================================
+  // LIVE GITHUB FEED
+  // This is the "update automatically when I push to git" feature.
+  // There's no server and no build step involved — the visitor's own
+  // browser calls GitHub's public REST API directly when the page loads,
+  // asking "what are this user's repos, newest push first?" and then
+  // builds a card for each one. Since the API always reflects whatever
+  // is currently on GitHub, a brand new repo (or a fresh commit to an
+  // old one) shows up here the very next time anyone opens the site —
+  // nothing in this HTML file needs to change.
+  //
+  // Trade-off worth knowing: GitHub's API only knows repo metadata
+  // (name, description, language, last-pushed date) — it doesn't know
+  // whether a project is "finished" the way your hand-written cards
+  // above do. That's why the curated flagship project and the four
+  // project cards above stay manually written, and this feed is treated
+  // as a supplementary "recent activity" strip rather than replacing
+  // them. It's also unauthenticated, which GitHub limits to 60 requests
+  // per hour per visitor IP — plenty for a personal portfolio, but worth
+  // knowing if it ever stops loading under heavy traffic.
+  // ============================================================
+
+  // `async function` lets us use `await` inside it to pause on network
+  // requests without freezing the rest of the page while we wait.
+  async function loadGitHubActivity() {
+    const container = document.getElementById('gh-feed');
+
+    try {
+      // fetch() makes an HTTP GET request to GitHub's REST API.
+      // sort=pushed asks for repos ordered by most-recently-pushed first
+      // — i.e. exactly "what did I just finish and push?"
+      // per_page=6 caps it at 6 cards so the section doesn't get huge.
+      const res = await fetch(
+        `https://api.github.com/users/${CONFIG.githubUsername}/repos?sort=pushed&per_page=6`
+      );
+
+      // fetch() only rejects on a network failure — an HTTP error like
+      // 404 or 403 still "succeeds" as far as fetch is concerned, so we
+      // have to check res.ok ourselves and throw manually if it's bad.
+      if (!res.ok) throw new Error(`GitHub API responded with ${res.status}`);
+
+      // The response body arrives as JSON text; .json() parses it into
+      // a real JavaScript array of repo objects we can work with.
+      const repos = await res.json();
+
+      if (repos.length === 0) {
+        container.innerHTML = '<p class="gh-loading">No public repos found yet.</p>';
+        return;
+      }
+
+      // Clear the "Fetching…" placeholder before adding real cards.
+      container.innerHTML = '';
+
+      repos.forEach(repo => {
+        // Build each card with the DOM API (createElement + textContent)
+        // rather than dropping repo data into innerHTML as a string.
+        // Repo names/descriptions come from GitHub, not from us — using
+        // textContent guarantees that text is only ever treated as
+        // plain text, never accidentally run as HTML/script.
+        const card = document.createElement('a');
+        card.className = 'project-card';
+        card.href = repo.html_url;
+        card.target = '_blank';
+        card.rel = 'noopener';
+
+        const top = document.createElement('div');
+        top.className = 'cell-top';
+
+        const name = document.createElement('h4');
+        name.textContent = repo.name;
+
+        const lang = document.createElement('span');
+        lang.className = 'gh-lang';
+        lang.textContent = repo.language || '';
+
+        top.append(name, lang);
+
+        const desc = document.createElement('p');
+        desc.textContent = repo.description || 'No description yet.';
+
+        const updated = document.createElement('span');
+        updated.className = 'gh-updated';
+        updated.textContent = `pushed ${timeAgo(repo.pushed_at)}`;
+
+        card.append(top, desc, updated);
+        container.appendChild(card);
+      });
+    } catch (err) {
+      // Network hiccups or API rate-limiting shouldn't break the page —
+      // fall back to a plain link to the GitHub profile instead.
+      console.error('GitHub feed failed to load:', err);
+      container.innerHTML =
+        `<p class="gh-error">Couldn't load live activity right now — see the full profile on ` +
+        `<a href="${CONFIG.github}" target="_blank" rel="noopener">GitHub</a> instead.</p>`;
+    }
+  }
+
+  // Converts an ISO date string like "2026-07-10T14:22:00Z" into a
+  // friendly relative label like "3 days ago".
+  function timeAgo(isoDate) {
+    const seconds = Math.floor((Date.now() - new Date(isoDate)) / 1000);
+    const units = [
+      ['year', 31536000], ['month', 2592000], ['week', 604800],
+      ['day', 86400], ['hour', 3600], ['minute', 60],
+    ];
+    for (const [label, secondsInUnit] of units) {
+      const count = Math.floor(seconds / secondsInUnit);
+      if (count >= 1) return `${count} ${label}${count > 1 ? 's' : ''} ago`;
+    }
+    return 'just now';
+  }
+
+  // Kick off the fetch as soon as the script runs.
+  loadGitHubActivity();
+
+  // ============================================================
+  // CAROUSEL
+  // Powers the slideshow in the L&D Boutique Hotel card. Works with
+  // however many .carousel-slide elements exist inside #carousel-track —
+  // add, remove, or reorder slides in the HTML and this code adapts
+  // automatically, no numbers to update by hand.
+  // ============================================================
+  const track = document.getElementById('carousel-track');
+  const slides = track ? Array.from(track.children) : [];
+  const dotsWrap = document.getElementById('carousel-dots');
+  const prevBtn = document.getElementById('carousel-prev');
+  const nextBtn = document.getElementById('carousel-next');
+
+  if (track && slides.length > 0) {
+    let current = 0;
+
+    // Build one dot button per slide. This runs once, at page load.
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      dot.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(dot);
+    });
+    const dots = Array.from(dotsWrap.children);
+
+    // Moves the track to show the slide at `index`, wrapping around at
+    // either end (so clicking "next" on the last slide loops back to
+    // the first, rather than getting stuck).
+    function goTo(index) {
+      current = (index + slides.length) % slides.length;
+      // Each slide is 100% of the viewport's width, so shifting the
+      // track left by (current * 100%) lines up slide number `current`
+      // with the visible window. This single CSS transform is the
+      // entire animation — the .carousel-track transition rule in the
+      // CSS is what makes it glide instead of jumping.
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    prevBtn.addEventListener('click', () => goTo(current - 1));
+    nextBtn.addEventListener('click', () => goTo(current + 1));
+
+    // Left/right arrow keys move the carousel too, but only when focus
+    // is actually inside it — otherwise arrow keys would hijack normal
+    // page scrolling/navigation anywhere else on the site.
+    document.querySelector('.carousel').addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') goTo(current - 1);
+      if (e.key === 'ArrowRight') goTo(current + 1);
+    });
+  }
+</script>
+
+</body>
+</html>
