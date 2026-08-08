@@ -131,6 +131,18 @@
      padding from silently breaking layouts. */
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  /* Safety net against horizontal scroll. If any element anywhere on
+     the page ever ends up wider than the viewport (like the nav links
+     did on narrow phone screens — see .nav-links further down), the
+     browser's default behaviour is to let the WHOLE page scroll
+     sideways to reveal it, dragging every section with it. Hiding
+     overflow-x here means an overflowing element just gets clipped at
+     the edge instead of taking the entire page's scrolling hostage — a
+     much safer failure mode. This doesn't fix the underlying cause
+     (that's the media query on .nav-links below), it just contains the
+     damage if something like it is ever missed again. */
+  html, body { overflow-x: hidden; }
+
   /* Makes in-page anchor links (e.g. clicking "about" in the nav) glide
      to the section instead of jumping instantly. */
   html { scroll-behavior: smooth; }
@@ -273,9 +285,20 @@
   }
   @keyframes blink { 50% { opacity: 0; } }
 
+  /* Hidden by default (mobile-first) and only shown once there's
+     enough width to fit all five links without wrapping or
+     overflowing — see the media query below. On a narrow phone screen
+     these five links plus their gaps simply don't fit in one row, and
+     because flex items don't wrap unless told to, they were overflowing
+     the nav bar sideways instead of dropping to a new line — which is
+     what dragged the whole page into horizontal scroll (see the
+     overflow-x safety net near the top of the file). Since this is a
+     single-page site anyone can already reach every section by
+     scrolling, hiding the shortcut links on small screens is a
+     perfectly usable trade-off — only the brand/logo stays visible. */
   .nav-links {
-    display: flex;
-    gap: 28px;
+    display: none;
+    gap: 20px;
     font-family: var(--mono);
     font-size: 12.5px;
   }
@@ -283,6 +306,7 @@
     color: var(--text-dim);
     transition: color 0.15s ease; /* smooth colour fade on hover, instead of an instant jump */
     letter-spacing: 0.02em;
+    white-space: nowrap; /* keeps "01 about" etc. from breaking onto two lines */
   }
   .nav-links a:hover { color: var(--amber); }
   .nav-links .num { color: var(--text-faint); margin-right: 4px; }
@@ -318,10 +342,21 @@
     50% { box-shadow: 0 0 0 5px rgba(74,222,128,0.08); }
   }
 
-  /* A media query: CSS rules that only apply when the browser window
-     matches a condition — here, "at least 720px wide". This is what
-     turns the status pill back on for tablet/desktop screens. */
-  @media (min-width: 720px) { .nav-status { display: flex; } }
+  /* Media queries: CSS rules that only apply when the browser window
+     matches a condition. Two steps here instead of one, so the links
+     ease back in rather than popping in all at once right when they'd
+     otherwise start feeling cramped:
+     - 560px: nav links reappear, but with a tighter gap (set above)
+       so five short links plus the brand name still comfortably fit.
+     - 720px: nav links get their normal, roomier gap back (overriding
+       the tighter one from the step above), and the status pill on
+       the far right turns on too, since by this width there's plenty
+       of space for everything at once. */
+  @media (min-width: 560px) { .nav-links { display: flex; } }
+  @media (min-width: 720px) {
+    .nav-links { gap: 28px; }
+    .nav-status { display: flex; }
+  }
 
   /* ============================================================
      HERO — the big intro section at the top of the page
