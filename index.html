@@ -285,28 +285,59 @@
   }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* Hidden by default (mobile-first) and only shown once there's
-     enough width to fit all five links without wrapping or
-     overflowing — see the media query below. On a narrow phone screen
-     these five links plus their gaps simply don't fit in one row, and
-     because flex items don't wrap unless told to, they were overflowing
-     the nav bar sideways instead of dropping to a new line — which is
-     what dragged the whole page into horizontal scroll (see the
-     overflow-x safety net near the top of the file). Since this is a
-     single-page site anyone can already reach every section by
-     scrolling, hiding the shortcut links on small screens is a
-     perfectly usable trade-off — only the brand/logo stays visible. */
+  /* The hamburger toggle button — only exists visually below 640px (see
+     the media query near the bottom of this block). It's a real
+     <button> in the HTML, not a styled <div>, so it's keyboard-
+     focusable and screen readers announce it correctly. */
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .nav-toggle:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* MOBILE (default): .nav-links starts fully hidden. JavaScript adds
+     the "open" class to this same element when the hamburger button is
+     tapped — that's the only thing that changes; the CSS below reacts
+     to that class rather than the JS doing any styling itself.
+     When open, it becomes an absolutely-positioned dropdown panel that
+     hangs below the nav bar. position: absolute here is measured from
+     header.nav (see the NAV section above) because that element has
+     position: sticky, which — like position: relative — establishes a
+     positioning context for any absolutely-positioned descendant. */
   .nav-links {
     display: none;
-    gap: 20px;
+    flex-direction: column;
+    gap: 4px;
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13.5px;
+  }
+  .nav-links.open {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 28px 18px;
+    box-shadow: 0 16px 28px rgba(0,0,0,0.28);
   }
   .nav-links a {
     color: var(--text-dim);
     transition: color 0.15s ease; /* smooth colour fade on hover, instead of an instant jump */
     letter-spacing: 0.02em;
     white-space: nowrap; /* keeps "01 about" etc. from breaking onto two lines */
+    padding: 10px 0; /* taller tap target for the dropdown rows — easier to hit accurately on a touchscreen than the compact desktop spacing */
   }
   .nav-links a:hover { color: var(--amber); }
   .nav-links .num { color: var(--text-faint); margin-right: 4px; }
@@ -342,18 +373,30 @@
     50% { box-shadow: 0 0 0 5px rgba(74,222,128,0.08); }
   }
 
-  /* Media queries: CSS rules that only apply when the browser window
-     matches a condition. Two steps here instead of one, so the links
-     ease back in rather than popping in all at once right when they'd
-     otherwise start feeling cramped:
-     - 560px: nav links reappear, but with a tighter gap (set above)
-       so five short links plus the brand name still comfortably fit.
-     - 720px: nav links get their normal, roomier gap back (overriding
-       the tighter one from the step above), and the status pill on
-       the far right turns on too, since by this width there's plenty
-       of space for everything at once. */
-  @media (min-width: 560px) { .nav-links { display: flex; } }
-  @media (min-width: 720px) {
+  /* WIDE SCREENS (640px+): switch from "dropdown panel" mode back to
+     a normal inline row, and hide the hamburger button entirely since
+     there's nothing left for it to open. The "!important" on display
+     is needed because it's overriding the more specific .nav-links.open
+     rule above — without it, a visitor who opened the menu on their
+     phone and then rotated to landscape (crossing the 640px line while
+     the "open" class is still attached) would otherwise still see the
+     absolutely-positioned dropdown styling instead of snapping back to
+     a normal row. */
+  @media (min-width: 640px) {
+    .nav-toggle { display: none; }
+    .nav-links {
+      display: flex !important;
+      flex-direction: row;
+      position: static;
+      background: none;
+      border-bottom: none;
+      box-shadow: none;
+      padding: 0;
+      gap: 20px;
+    }
+    .nav-links a { padding: 0; }
+  }
+  @media (min-width: 760px) {
     .nav-links { gap: 28px; }
     .nav-status { display: flex; }
   }
@@ -1081,7 +1124,13 @@
 <header class="nav">
   <div class="nav-inner">
     <div class="nav-brand"><span>lance@portfolio:~$</span><span class="caret">_</span></div>
-    <nav class="nav-links">
+    <!-- id="nav-links" is what the JS toggle at the bottom of the page
+         targets to add/remove the "open" class. aria-expanded on the
+         button and aria-controls linking to this id are accessibility
+         attributes — they tell screen readers whether the menu is
+         currently open, since the visual dropdown state alone isn't
+         announced automatically the way it is for a native <select>. -->
+    <nav class="nav-links" id="nav-links">
       <a href="#about"><span class="num">01</span>about</a>
       <a href="#stack"><span class="num">02</span>stack</a>
       <a href="#projects"><span class="num">03</span>projects</a>
@@ -1089,6 +1138,7 @@
       <a href="#connect"><span class="num">05</span>connect</a>
     </nav>
     <div class="nav-status"><span class="dot"></span>open to opportunities</div>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation menu">☰</button>
   </div>
 </header>
 
@@ -1523,6 +1573,41 @@
 
   // Tell the observer to start watching every element we found above.
   revealEls.forEach(el => io.observe(el));
+
+  // ============================================================
+  // MOBILE NAV DROPDOWN
+  // Toggles the hamburger menu on narrow screens. All the actual
+  // "dropdown panel" look lives in CSS ([.nav-links.open] near the top
+  // of the file) — this script's only job is adding/removing that one
+  // class name, plus a couple of accessibility/UX details below.
+  // ============================================================
+  const navToggle = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      // aria-expanded tells screen readers (and some browsers' own UI)
+      // whether the control this button owns is currently open —
+      // without it, the visual change alone wouldn't be announced.
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+      // Swap the icon between "hamburger" (closed) and "✕" (open) so
+      // the button itself hints at what tapping it again will do.
+      navToggle.textContent = isOpen ? '✕' : '☰';
+    });
+
+    // Close the menu automatically once a visitor taps one of the
+    // links inside it — otherwise it would stay open, covering the
+    // section they just navigated to.
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.textContent = '☰';
+      });
+    });
+  }
+
 
   // ============================================================
   // LIVE GITHUB FEED
