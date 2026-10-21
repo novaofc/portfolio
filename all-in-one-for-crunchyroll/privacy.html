@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — All-in-One for Crunchyroll</title>
+  <meta name="description" content="Privacy policy for the All-in-One for Crunchyroll browser extension: what it stores, what it sends, and what it never does.">
+  <meta name="referrer" content="no-referrer">
+  <style>
+    :root { --ink:#14121A; --surface:#1E1B26; --line:rgba(255,255,255,.09); --text:#F4EFE6; --muted:#A79FB3; --amber:#FFB347; --mint:#7AD7C8; color-scheme: dark; }
+    @media (prefers-color-scheme: light) { :root { --ink:#FBF8F3; --surface:#FFFFFF; --line:rgba(20,18,26,.10); --text:#1B1622; --muted:#5E566B; --amber:#B86A00; --mint:#1C7F70; color-scheme: light; } }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--ink); color: var(--text); }
+    body { font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+    header { padding: 56px 0 28px; border-bottom: 1px solid var(--line);
+             background: radial-gradient(80% 140% at 0% 0%, rgba(255,179,71,.16), transparent 60%); }
+    .eyebrow { color: var(--amber); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; }
+    h1 { margin: 8px 0 6px; font-size: clamp(28px, 5vw, 38px); line-height: 1.15; }
+    .meta { color: var(--muted); font-size: 14px; }
+    main { padding: 30px 0 70px; }
+    h2 { margin: 36px 0 8px; font-size: 20px; }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+    ul { padding-left: 22px; }
+    li { margin: 6px 0; }
+    .summary { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; }
+    .summary li::marker { color: var(--mint); }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 10px 0; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+    code { font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--mint); overflow-wrap: anywhere; }
+    a { color: var(--amber); }
+    .table-scroll { overflow-x: auto; }
+    footer { border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Browser extension</div>
+      <h1>Privacy Policy — All-in-One for Crunchyroll</h1>
+      <div class="meta">Effective 21 October 2026 · Applies to version 1.0.0 and later</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="summary">
+      <strong>In short</strong>
+      <ul>
+        <li>The developer collects <strong>no data at all</strong>: no analytics, no tracking, no accounts, no ads.</li>
+        <li>Everything the extension saves stays in your own browser.</li>
+        <li>It only communicates with Crunchyroll and, if you choose to set it up, DeepL.</li>
+        <li>Nothing is ever sold or shared.</li>
+      </ul>
+    </div>
+
+    <h2>Who we are</h2>
+    <p>All-in-One for Crunchyroll ("the extension") is an independent browser extension developed by Lance Landore in South Africa. It is not affiliated with, endorsed by, or sponsored by Crunchyroll, LLC. "Crunchyroll" is a trademark of its owner.</p>
+
+    <h2>What the extension stores, and where</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>What</th><th>Where</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Your settings (subtitle language and style, speed, auto-skip choices, shortcuts on/off)</td><td>Chrome's extension storage. If you use Chrome Sync, Google syncs it between your own browsers.</td><td>So your preferences apply everywhere you watch.</td></tr>
+        <tr><td>The subtitle track you picked for each episode (by Crunchyroll episode ID, up to the 300 most recent)</td><td>This device only</td><td>So the same track is chosen next time you watch that episode.</td></tr>
+        <tr><td>The date you installed the extension, and whether you dismissed the "support" note</td><td>This device only</td><td>So the support note waits a week and respects "Don't show again".</td></tr>
+        <tr><td>Your DeepL API key, if you add one</td><td>This device only (never synced, never included in settings exports)</td><td>Only for the optional machine translation feature.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>You can remove all of it at any time: Options → <em>Reset to defaults</em>, <em>Forget remembered tracks</em> and <em>Remove key</em>, or simply uninstall the extension.</p>
+
+    <h2>What the extension does on Crunchyroll pages</h2>
+    <ul>
+      <li><strong>Subtitle tracks.</strong> To offer every subtitle language for an episode, the extension reads the subtitle list in Crunchyroll's own responses to the video player. To find tracks that belong to other audio versions of the same episode, it may make the same request Crunchyroll's player makes, using the sign-in session the page already has.</li>
+      <li><strong>Your sign-in.</strong> The Crunchyroll sign-in token is used only inside the Crunchyroll page, only for those requests to Crunchyroll. It is never stored, never logged, and never sent to the developer or anyone else. Every extra playback session it opens is closed immediately.</li>
+      <li><strong>Subtitle text</strong> is downloaded from Crunchyroll's servers and displayed on your screen. It isn't stored beyond the browsing session.</li>
+      <li><strong>Skip markers.</strong> The extension reads the episode's intro/recap/credits timings, published by Crunchyroll, to skip those parts.</li>
+      <li><strong>Speed and keyboard shortcuts</strong> are handled locally as you use them. Nothing about your viewing is recorded.</li>
+    </ul>
+
+    <h2>Optional machine translation (DeepL)</h2>
+    <p>If you add your own DeepL API key and press <em>Translate</em> (and confirm), the text of the current subtitle track is sent to DeepL (<code>api-free.deepl.com</code> or <code>api.deepl.com</code>) to be translated. Nothing else is sent: no account details and no information about you. DeepL's handling of that text is covered by <a href="https://www.deepl.com/privacy" rel="noopener noreferrer">DeepL's privacy policy</a>. The extension asks for permission to contact DeepL only when you save a key, and gives that permission back when you remove it.</p>
+
+    <h2>Support link</h2>
+    <p>The extension includes a link to the developer's Ko-fi page. Clicking it simply opens <code>ko-fi.com</code> in a new tab. Any payment happens entirely on Ko-fi under <a href="https://more.ko-fi.com/privacy" rel="noopener noreferrer">Ko-fi's privacy policy</a>; the extension never sees or handles payment details.</p>
+
+    <h2>What the extension never does</h2>
+    <ul>
+      <li>Collect, sell, rent or share any personal data</li>
+      <li>Use analytics, telemetry, crash reporting, advertising or tracking of any kind</li>
+      <li>Run on any website other than <code>www.crunchyroll.com</code></li>
+      <li>Download or run code from the internet. All of its code ships inside the extension.</li>
+      <li>Use any data to determine creditworthiness or for lending purposes</li>
+    </ul>
+
+    <h2>Chrome Web Store limited use</h2>
+    <p>The use of information received from Crunchyroll pages adheres to the <a href="https://developer.chrome.com/docs/webstore/program-policies/limited-use" rel="noopener noreferrer">Chrome Web Store User Data Policy</a>, including the Limited Use requirements. Data is used only to provide the extension's single purpose: improving how you watch videos on Crunchyroll.</p>
+
+    <h2>Children</h2>
+    <p>The extension is a general-audience tool, collects no personal information, and is not directed at children.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>If what the extension stores or sends ever changes, this page will be updated before that version is released, and the effective date above will change.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: use the <em>Support</em> tab on the extension's Chrome Web Store page, or message the developer through <a href="https://ko-fi.com/novaofc" rel="noopener noreferrer">ko-fi.com/novaofc</a>.</p>
+  </main>
+
+  <footer>
+    <div class="wrap">All-in-One for Crunchyroll · Independent project · Not affiliated with Crunchyroll, LLC.</div>
+  </footer>
+</body>
+</html>
