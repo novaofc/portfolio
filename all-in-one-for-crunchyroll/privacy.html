@@ -40,7 +40,7 @@
     <div class="wrap">
       <div class="eyebrow">Browser extension</div>
       <h1>Privacy Policy — All-in-One for Crunchyroll</h1>
-      <div class="meta">Effective 21 October 2026 · Applies to version 1.0.0 and later</div>
+      <div class="meta">Effective 26 October 2026 · Applies to version 1.1.0 and later</div>
     </div>
   </header>
 
@@ -63,14 +63,15 @@
     <table>
       <thead><tr><th>What</th><th>Where</th><th>Why</th></tr></thead>
       <tbody>
-        <tr><td>Your settings (subtitle language and style, speed, auto-skip choices, shortcuts on/off)</td><td>Chrome's extension storage. If you use Chrome Sync, Google syncs it between your own browsers.</td><td>So your preferences apply everywhere you watch.</td></tr>
+        <tr><td>Your settings (subtitle language and style, speed, auto-skip choices, keyboard shortcuts)</td><td>Chrome's extension storage. If you use Chrome Sync, Google syncs it between your own browsers.</td><td>So your preferences apply everywhere you watch.</td></tr>
         <tr><td>The subtitle track you picked for each episode (by Crunchyroll episode ID, up to the 300 most recent)</td><td>This device only</td><td>So the same track is chosen next time you watch that episode.</td></tr>
         <tr><td>The date you installed the extension, and whether you dismissed the "support" note</td><td>This device only</td><td>So the support note waits a week and respects "Don't show again".</td></tr>
+        <tr><td>"Time saved" totals: how many seconds auto-skip and faster speeds have saved, how many skips, and the date counting started. Only these totals: no episodes, shows or times of day.</td><td>This device only (never synced, never sent anywhere)</td><td>To show you how much time the extension has saved.</td></tr>
         <tr><td>Your DeepL API key, if you add one</td><td>This device only (never synced, never included in settings exports)</td><td>Only for the optional machine translation feature.</td></tr>
       </tbody>
     </table>
     </div>
-    <p>You can remove all of it at any time: Options → <em>Reset to defaults</em>, <em>Forget remembered tracks</em> and <em>Remove key</em>, or simply uninstall the extension.</p>
+    <p>You can remove all of it at any time: Options → <em>Reset to defaults</em>, <em>Forget remembered tracks</em>, <em>Reset time saved</em> and <em>Remove key</em>, or simply uninstall the extension.</p>
 
     <h2>What the extension does on Crunchyroll pages</h2>
     <ul>
@@ -78,11 +79,14 @@
       <li><strong>Your sign-in.</strong> The Crunchyroll sign-in token is used only inside the Crunchyroll page, only for those requests to Crunchyroll. It is never stored, never logged, and never sent to the developer or anyone else. Every extra playback session it opens is closed immediately.</li>
       <li><strong>Subtitle text</strong> is downloaded from Crunchyroll's servers and displayed on your screen. It isn't stored beyond the browsing session.</li>
       <li><strong>Skip markers.</strong> The extension reads the episode's intro/recap/credits timings, published by Crunchyroll, to skip those parts.</li>
-      <li><strong>Speed and keyboard shortcuts</strong> are handled locally as you use them. Nothing about your viewing is recorded.</li>
+      <li><strong>Speed and keyboard shortcuts</strong> are handled locally as you use them. Apart from the time-saved totals above, nothing about your viewing is recorded.</li>
     </ul>
 
     <h2>Optional machine translation (DeepL)</h2>
     <p>If you add your own DeepL API key and press <em>Translate</em> (and confirm), the text of the current subtitle track is sent to DeepL (<code>api-free.deepl.com</code> or <code>api.deepl.com</code>) to be translated. Nothing else is sent: no account details and no information about you. DeepL's handling of that text is covered by <a href="https://www.deepl.com/privacy" rel="noopener noreferrer">DeepL's privacy policy</a>. The extension asks for permission to contact DeepL only when you save a key, and gives that permission back when you remove it.</p>
+
+    <h2>Reporting a problem</h2>
+    <p>The popup's <em>Report a problem</em> button shows a short text report that you can read and edit before copying it: the extension version, your browser version and language, your settings, and what the extension detected on the current episode page (for example how many subtitle tracks and skip markers it found). It never includes the page address, show titles, account details or your DeepL key, and includes the episode ID only if you tick the box. Nothing is sent automatically: the report goes only where you paste or email it yourself (the popup suggests <code>allinone.crunchyroll@gmail.com</code>).</p>
 
     <h2>Support link</h2>
     <p>The extension includes a link to the developer's Ko-fi page. Clicking it simply opens <code>ko-fi.com</code> in a new tab. Any payment happens entirely on Ko-fi under <a href="https://more.ko-fi.com/privacy" rel="noopener noreferrer">Ko-fi's privacy policy</a>; the extension never sees or handles payment details.</p>
@@ -106,7 +110,7 @@
     <p>If what the extension stores or sends ever changes, this page will be updated before that version is released, and the effective date above will change.</p>
 
     <h2>Contact</h2>
-    <p>Questions about privacy: use the <em>Support</em> tab on the extension's Chrome Web Store page, or message the developer through <a href="https://ko-fi.com/novaofc" rel="noopener noreferrer">ko-fi.com/novaofc</a>.</p>
+    <p>Questions about privacy, or a problem with the extension: email <a href="mailto:allinone.crunchyroll@gmail.com">allinone.crunchyroll@gmail.com</a>.</p>
   </main>
 
   <footer>
